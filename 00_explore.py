@@ -13,7 +13,6 @@ except:
     print('something went wrong, cannot connect to database')
     quit()
 
-
 query_1 = "select observer, count(observer)" \
           "from s6039677.observation " \
           "group by observer"
@@ -100,5 +99,25 @@ plt.show()
 plt.hist(df['count'])
 plt.show()
 # conclusion: most block have very few observers
+
+# plot sum observer number of ALL THE DAYS
+query_7 = "with bigtable as ( " \
+          "select blc.block, count(obs.observer), blc.geom as geom, obs.obsdate " \
+          "from s6039677.observation as obs, s6039677.block as blc " \
+          "where obs.obsdate = '2017-05-21' and obs.block = blc.block  " \
+          "group by blc.block, geom, obs.obsdate) " \
+          "select block, sum(count), obsdate, geom " \
+          "from bigtable " \
+          "group by block, obsdate, geom"
+df = gpd.GeoDataFrame.from_postgis(query_7, conn, geom_col='geom')
+df.crs = {'init':'epsg:28992'}
+df.plot(column='sum')
+plt.show()
+df['log_n_observer'] = np.log10(df['sum'])
+plt.hist(df['log_n_observer'])
+plt.show()
+plt.hist(df['sum'])
+plt.show()
+# conclusion: zeros all over the place! 
 
 conn.close()
