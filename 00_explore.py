@@ -13,6 +13,7 @@ except:
     print('something went wrong, cannot connect to database')
     quit()
 
+
 query_1 = "select observer, count(observer)" \
           "from s6039677.observation " \
           "group by observer"
@@ -43,7 +44,7 @@ plt.scatter(df_2['log_n_observers'], df_2['log_n_observation'])
 plt.show()
 
 
-# '''something about the temporal distribution'''
+# something about the temporal distribution
 query_3 = "select count(id), obsdate " \
          "from s6039677.observation " \
          "group by obsdate " \
@@ -56,7 +57,31 @@ ax = plt.subplot(111)
 ax.bar(df_3['obsdate'], df_3['count'], width=np.timedelta64(1, 'D'))
 ax.xaxis_date()
 plt.show()
-# conclusion: higher spikes in weekend days -> more "meaningful" data on weekend days
+# conclusion: higher spikes seems to appear on weekend days -> more "meaningful" data on weekend days
+
+
+# more temporal things
+# shows weekday and weekend pattern with different colors
+query_5 = "select count(id), obsdate  " \
+          "from s6039677.observation as obs, public.days as days " \
+          "where obs.obsdate = days.odate and days.dow in (0, 6) " \
+          "group by obsdate " \
+          "order by obsdate"
+query_6 = "select count(id), obsdate  " \
+          "from s6039677.observation as obs, public.days as days " \
+          "where obs.obsdate = days.odate and days.dow in (1, 2, 3, 4, 5) " \
+          "group by obsdate " \
+          "order by obsdate"
+df_5 = pd.read_sql(query_5, conn)
+df_5['obsdate'] = pd.to_datetime(df_5['obsdate'])
+df_6 = pd.read_sql(query_6, conn)
+df_6['obsdate'] = pd.to_datetime(df_6['obsdate'])
+# print(df_3.dtypes)
+ax = plt.subplot(111)
+ax.bar(df_5['obsdate'], df_5['count'], width=np.timedelta64(1, 'D'))
+ax.bar(df_6['obsdate'], df_6['count'], width=np.timedelta64(1, 'D'), color='g')
+ax.xaxis_date()
+plt.show()
 
 # a spatial example to plot the data
 query_4 = "select blc.block, count(obs.observer), blc.geom as geom " \
