@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 # get day labels
-arr = genfromtxt('day_label.csv', delimiter=',')
+arr = np.genfromtxt('day_label.csv', delimiter=',')
 day_label = list(map(int, arr.tolist()))
 day_id = list(range(1, 52, 1))
 day_id.remove(34)
@@ -53,7 +53,7 @@ query_0 = "select t.block, avg(temper), stddev_samp(temper), avg(precip), stddev
           "         and (t.block not in (select block from s6039677.block_exclude))" \
           "         and (t.block = r.block)" \
           "         and (t.dtime = r.dtime)" \
-               "group by t.block " %((', '.join(map(str,day_id))))  #(', '.join(map(str, reverse_label(day_dict, 1))))
+               "group by t.block " %(', '.join(map(str, reverse_label(day_dict, 0)))) #((', '.join(map(str,day_id))))  #(', '.join(map(str, reverse_label(day_dict, 1))))
 
 print(query_0)
 df_0 = pd.read_sql(query_0, conn)
@@ -84,7 +84,7 @@ final = final.join(landuse.set_index('block'), on='block')
 print(final)
 print(final.columns)
 # final.drop(columns=['Unnamed: 0'], inplace=True)
-final.to_csv('features_all_0919.csv')
+final.to_csv('features_0_0919.csv')
 
 conn.close()
 
