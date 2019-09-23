@@ -20,6 +20,7 @@ df.drop(columns=['Unnamed: 0'], inplace=True)
 # get the some new features, landuse into category and do some percentages
 features = pd.read_csv('features_all_0919.csv')
 features.drop(columns=['Unnamed: 0'], inplace=True)
+# features.drop(columns=['longit', 'latit', 'cluster'], inplace=True)  # for not 0919
 features.major_landuse = features.major_landuse.astype('category')
 features['landuse'] = features['major_landuse'].cat.codes
 features.drop(columns=['major_landuse'], inplace=True)
@@ -28,12 +29,19 @@ features['percent_west'] = features['n_west_2']/features['aantal_inw']
 features.drop(columns=['n_dutch_2', 'n_west_2'], inplace=True)
 features.dropna(inplace=True)
 
+# doubt
+features['percent_1'] = features['aantal_i_1']/features['aantal_inw']
+features['percent_2'] = features['aantal_i_2']/features['aantal_inw']
+features['percent_3'] = features['aantal_i_3']/features['aantal_inw']
+features['percent_4'] = features['aantal_i_4']/features['aantal_inw']
+features['percent_5'] = features['aantal_i_5']/features['aantal_inw']
+features.drop(columns=['aantal_i_1', 'aantal_i_2', 'aantal_i_3', 'aantal_i_4', 'aantal_i_5'], inplace=True)
+
 features = features.join(df.set_index('block'), on='block')
 features.drop(columns=['block'], inplace=True)
 features.dropna(inplace=True)
 
-# doubt
-features.drop(columns=['aantal_i_1', 'aantal_i_2', 'aantal_i_3', 'aantal_i_4', 'aantal_i_5'], inplace=True)
+
 print(features.columns)
 
 X = features.iloc[:, :-1]
@@ -48,7 +56,7 @@ print('Training Labels Shape:', train_labels.shape)
 print('Testing Features Shape:', test_features.shape)
 print('Testing Labels Shape:', test_labels.shape)
 
-clf = RandomForestClassifier(n_estimators=1000, random_state=0, n_jobs=-1)
+clf = RandomForestClassifier(n_estimators=5000, random_state=0, n_jobs=-1)
 clf.fit(train_features, train_labels)
 
 
@@ -78,8 +86,8 @@ matrix = confusion_matrix(test_labels, predicted)
 print(matrix)
 
 
-# result
-'''feature importance after dropped some population variables
+# result on aggregated population
+'''feature importance after dropped some population variables, 1000 estimator
 ('avg', 0.1173008357753718)
 ('stddev_samp', 0.11943687488759909)
 ('avg.1', 0.11532296267135053)
@@ -97,5 +105,63 @@ matrix
  [  44    1    0]
  [1271    0  696]]
 accuracy: 79.6
+'''
+
+
+'''with age percentages, 5000 estimator
+('avg', 0.07556878697207889)
+('stddev_samp', 0.07708839634202386)
+('avg.1', 0.0761630347713674)
+('stddev_samp.1', 0.06918579731309388)
+('aantal_inw', 0.07643460046304114)
+('stedelijkh', 0.0071733615537954215)
+('total', 0.09153377746804521)
+('reserve_percent', 0.03589650204232111)
+('landuse', 0.01459672540176017)
+('percent_nl', 0.07493958161882901)
+('percent_west', 0.07526020484353001)
+('percent_1', 0.06360856404590548)
+('percent_2', 0.06454469985596434)
+('percent_3', 0.06605927947008046)
+('percent_4', 0.06602560561104474)
+('percent_5', 0.06592108222711891)
+
+matrix
+[[6141    0  395]
+ [  43    2    0]
+ [1283    0  684]]
+accuracy 80
+
+# 10000 estimator similar score and only slightly worse accuracy
+'''
+
+
+
+
+# result on block population not aggregated
+'''
+('avg', 0.1185183569863746)
+('stddev_samp', 0.1169490226218834)
+('avg.1', 0.11019133687991986)
+('stddev_samp.1', 0.10242022301815859)
+('aantal_inw', 0.06412265234093706)
+('stedelijkh', 0.0130213178740376)
+('total', 0.13118642426586186)
+('reserve_percent', 0.035063946429038005)
+('landuse', 0.01386187357668364)
+('percent_nl', 0.05903727848753882)
+('percent_west', 0.025199801678956024)
+('percent_1', 0.03951096351170991)
+('percent_2', 0.03719072985449814)
+('percent_3', 0.03932696990574016)
+('percent_4', 0.05242507768913195)
+('percent_5', 0.041974024879530496)
+
+matrix
+[[4887    0  280]
+ [  23    0    1]
+ [1183    0  429]]
+ 
+accuracy: 78
 '''
 
